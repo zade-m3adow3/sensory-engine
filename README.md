@@ -1,4 +1,4 @@
-# 🌳 [Your Name]'s Personal Universe
+# 🌳 Rounak's Personal Universe
 
 A deeply personal, interactive website built for the people I care about.
 Each person who receives a link gets their own personalised experience —
