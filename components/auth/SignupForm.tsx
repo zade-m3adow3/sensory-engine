@@ -26,6 +26,17 @@ export default function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const getPasswordStrength = () => {
+    if (!password) return 0;
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/\d/.test(password)) score += 1;
+    if (/[a-zA-Z]/.test(password)) score += 1;
+    if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+    return score;
+  };
+  const strength = getPasswordStrength();
+
   // Ctrl+Shift+A secret admin toggle
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -88,7 +99,7 @@ export default function SignupForm() {
 
   return (
     <motion.div 
-      className="glass-panel w-full max-w-md mx-auto p-8 relative"
+      className="glass-panel w-full max-w-md mx-auto p-8 relative shadow-[0_0_40px_rgba(79,70,229,0.08)]"
       animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
       transition={{ duration: 0.4 }}
     >
@@ -157,6 +168,20 @@ export default function SignupForm() {
             >
               {showPassword ? "Hide" : "Show"}
             </button>
+            {password.length > 0 && (
+              <div className="absolute -bottom-3 left-2 right-2 flex gap-1">
+                {[1, 2, 3, 4].map((level) => (
+                  <div 
+                    key={level} 
+                    className={`h-[2px] flex-1 rounded-full transition-all duration-300 ${
+                      strength >= level 
+                        ? (strength < 2 ? 'bg-red-500' : strength < 4 ? 'bg-amber-400' : 'bg-emerald-400')
+                        : 'bg-white/10'
+                    }`} 
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="relative group mt-2">
@@ -196,7 +221,7 @@ export default function SignupForm() {
           as="button"
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-medium shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all mt-4 disabled:opacity-50"
+          className="w-full py-4 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-medium shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] transition-all mt-4 disabled:opacity-50 animate-[pulse_3s_ease-in-out_infinite]"
         >
           {isSubmitting ? "Creating..." : "Create Account"}
         </RippleWrapper>

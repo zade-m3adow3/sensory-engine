@@ -54,7 +54,7 @@ export default function LoginForm() {
 
   return (
     <motion.div 
-      className="glass-panel w-full max-w-md mx-auto p-8 relative"
+      className="glass-panel w-full max-w-md mx-auto p-8 relative shadow-[0_0_40px_rgba(79,70,229,0.08)]"
       animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
       transition={{ duration: 0.4 }}
     >
@@ -113,7 +113,7 @@ export default function LoginForm() {
           as="button"
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-medium shadow-[0_0_20px_rgba(79,70,229,0.3)] transition-all mt-4 disabled:opacity-50"
+          className="w-full py-4 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-medium shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] transition-all mt-4 disabled:opacity-50 animate-[pulse_3s_ease-in-out_infinite]"
         >
           {isSubmitting ? "Signing in..." : "Sign In"}
         </RippleWrapper>
