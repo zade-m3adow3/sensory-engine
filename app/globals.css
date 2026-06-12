@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background-start: #000000;
+  --background-end: #0a0f2e;
+  --accent-blue: #1e3a8a;
+  --accent-indigo: #312e81;
+  --accent-slate: #0f172a;
+}
+
+body {
+  margin: 0;
+  color: white;
+  background: radial-gradient(circle at center, var(--background-end) 0%, var(--background-start) 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Glassmorphism utility classes */
+.glass-panel {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-interactive {
+  transition: all 0.3s ease;
+}
+
+.glass-interactive:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.glass-interactive:active {
+  transform: translateY(0);
+}
+
+/* Pure CSS Star Particles */
+#stars-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: 
+    10vw 20vh #fff,
+    40vw 60vh #fff,
+    80vw 10vh #fff,
+    20vw 80vh #fff,
+    90vw 90vh #fff,
+    50vw 50vh #fff;
+  animation: animStar 50s linear infinite;
+}
+
+.star::after {
+  content: " ";
+  position: absolute;
+  top: 100vh;
+  width: 2px;
+  height: 2px;
+  background: transparent;
+  box-shadow: inherit;
+}
+
+.star-2 {
+  width: 3px;
+  height: 3px;
+  box-shadow: 
+    15vw 15vh #fff,
+    85vw 85vh #fff,
+    30vw 30vh #fff,
+    70vw 70vh #fff;
+  animation: animStar 100s linear infinite;
+}
+
+.star-2::after {
+  content: " ";
+  position: absolute;
+  top: 100vh;
+  width: 3px;
+  height: 3px;
+  background: transparent;
+  box-shadow: inherit;
+}
+
+@keyframes animStar {
+  from {
+    transform: translateY(0px);
+  }
+  to {
+    transform: translateY(-100vh);
+  }
+}
+
+/* Ripple effect styling */
+.ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: ripple 0.6s linear;
+  background-color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}

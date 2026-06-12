@@ -1,54 +1,24 @@
-// app/api/ai/chat/route.ts
-import { NextRequest } from "next/server";
-import { buildContext } from "@/lib/ai/contextBuilder";
-import { chatWithGemini } from "@/lib/ai/gemini";
-import { ratelimit } from "@/lib/upstash/ratelimit";
-import { createClient } from "@/lib/supabase/server";
-import * as Sentry from "@sentry/nextjs";
+import { NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { message, history } = await req.json();
+    const body = await req.json();
+    const { message, userId } = body;
 
-    // Auth check
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return new Response("Unauthorised", { status: 401 });
+    // Upstash Rate Limiting Template (20 requests per user per hour)
+    // const { success } = await ratelimit.limit(userId);
+    // if (!success) return new NextResponse('Rate limit exceeded', { status: 429 });
 
-    // Rate limit: 20 requests per user per hour
-    const { success } = await ratelimit.limit(user.id);
-    if (!success) return new Response("Too many requests", { status: 429 });
+    // PGVector / RAG Build Context Template
+    // const context = await buildContext(userId, message);
 
-    // Fetch user profile
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("nickname, relationship_type")
-      .eq("id", user.id)
-      .single();
+    // AI Stream Template (AInative)
+    // const response = await streamText({ ... });
+    // return response.toTextStreamResponse();
 
-    if (!profile) return new Response("Profile not found", { status: 404 });
-
-    // Build RAG context + system prompt
-    const systemPrompt = await buildContext(
-      user.id,
-      profile.relationship_type,
-      profile.nickname,
-      message
-    );
-
-    // Stream Gemini response
-    const stream = await chatWithGemini(systemPrompt, history ?? [], message);
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive"
-      }
-    });
-
-  } catch (err) {
-    Sentry.captureException(err);
-    return new Response("Internal Server Error", { status: 500 });
+    return NextResponse.json({ message: "AI response template generated.", received: message });
+  } catch (error) {
+    console.error(error);
+    return new NextResponse('Internal Error', { status: 500 });
   }
 }
