@@ -67,7 +67,7 @@ export function ProfileNode({
     scale: hovered ? 1.25 : 1.0,
     ringEmission: hovered ? 2.0 : 0.8,
     config: { mass: 1, tension: 200, friction: 15 },
-    immediate: prefersReducedMotion
+    immediate: !!prefersReducedMotion
   });
 
   const baseColor = useMemo(() => {

@@ -7,7 +7,7 @@ import { useTreeStore } from '@/stores/treeStore';
 import { ScrollController } from '@/components/tree/ScrollController';
 
 // Dynamically import the TreeScene to avoid SSR issues with Three.js
-const TreeScene = dynamic(() => import('@/components/tree/TreeScene').then((mod) => mod.TreeScene || mod.default), {
+const TreeScene = dynamic(() => import('@/components/tree/TreeScene').then((mod) => mod.TreeScene as any), {
   ssr: false,
 });
 

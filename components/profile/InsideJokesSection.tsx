@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '../../../lib/supabase/client';
-import { GlassButton } from '../../ui/GlassButton';
-import { GlassInput } from '../../ui/GlassInput';
-import { TextInput } from '../../questionnaire/QuestionTypes/TextInput';
+import { createClient } from '@/lib/supabase/client';
+import { GlassButton } from '@/components/ui/GlassButton';
+import { GlassInput } from '@/components/ui/GlassInput';
+import { TextInput } from '@/components/questionnaire/QuestionTypes/TextInput';
 
 interface InsideJoke {
   id: string;
@@ -100,14 +100,14 @@ export const InsideJokesSection: React.FC<Props> = ({ profileUserId }) => {
           <GlassInput 
             placeholder="Title / Context" 
             value={newTitle} 
-            onChange={(e) => setNewTitle(e.target.value)} 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)} 
             className="mb-4"
           />
           <TextInput 
             placeholder="The full story..." 
             value={newStory} 
-            onChange={(val) => setNewStory(val)} 
-            isLong 
+            onChange={(val: string) => setNewStory(val)} 
+            isLong
           />
           <div className="flex justify-end gap-3 mt-4">
             <GlassButton type="button" onClick={() => setIsAdding(false)} className="py-2 px-4 text-sm bg-white/5 hover:bg-white/10">
@@ -146,7 +146,7 @@ const JokeCard = ({ joke }: { joke: InsideJoke }) => {
       onClick={() => setExpanded(!expanded)}
     >
       <h4 className="font-heading text-xl text-white mb-2 leading-tight">
-        {joke.title.match(/^[\p{Emoji}]/u) ? joke.title : `😂 ${joke.title}`}
+        {joke.title.match(/^[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF]/) ? joke.title : `😂 ${joke.title}`}
       </h4>
       <p className={`text-sm text-white/70 font-sans whitespace-pre-wrap transition-all duration-300 ${!expanded ? 'line-clamp-3' : ''}`}>
         {joke.story}

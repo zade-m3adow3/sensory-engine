@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StarField } from '@/components/ui/StarField';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 
 function useCounter(target: number, duration: number) {
   const [count, setCount] = useState(0);
@@ -37,7 +37,7 @@ function useCounter(target: number, duration: number) {
 export default function GlobalLoading() {
   const count = useCounter(100, 2500); // 0 to 100 over 2.5s
   const [nickname, setNickname] = useState<string | null>(null);
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   useEffect(() => {
     const fetchSession = async () => {

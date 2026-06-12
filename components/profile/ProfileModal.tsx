@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { BirthdayOverlay } from './BirthdayOverlay';
 // Assuming InsideJokesSection was built previously
 import { InsideJokesSection } from './InsideJokesSection';
@@ -23,7 +23,7 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('Messages');
   const [isBirthday, setIsBirthday] = useState(false);
   const [newMessage, setNewMessage] = useState('');
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {

@@ -13,10 +13,10 @@ export function TreeScene({ profileData = [] }: { profileData?: any[] }) {
 
   // Extract the tree mesh that contains the shape keys
   const treeMesh = useMemo(() => {
-    let targetMesh: THREE.Mesh | null = null;
-    scene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh && child.name.includes("RelationshipTree")) {
-        targetMesh = child as THREE.Mesh;
+    let targetMesh: any = null;
+    scene.traverse((child: any) => {
+      if (child.isMesh && child.name.includes("RelationshipTree")) {
+        targetMesh = child;
       }
     });
     return targetMesh;
@@ -93,7 +93,7 @@ export function TreeScene({ profileData = [] }: { profileData?: any[] }) {
       })}
 
       {/* Cinematic Post Processing */}
-      <EffectComposer disableNormalPass>
+      <EffectComposer>
         <Bloom luminanceThreshold={0.3} intensity={0.8} mipmapBlur />
         <DepthOfField focusDistance={0} focalLength={0.02} bokehScale={1.5} />
         <Vignette offset={0.4} darkness={0.7} />
