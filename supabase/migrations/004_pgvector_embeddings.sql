@@ -14,7 +14,7 @@ CREATE TABLE ai_context_embeddings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
-  embedding vector(1536) NOT NULL,
+  embedding vector(768) NOT NULL,
   context_type context_type NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
