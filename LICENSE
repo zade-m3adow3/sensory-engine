@@ -1,0 +1,36 @@
+PERSONAL USE LICENSE
+
+Copyright (c) [YEAR] [YOUR FULL NAME]
+
+This software and its associated files ("the Project") are personal and
+proprietary. The following terms apply:
+
+1. PRIVATE USE
+   This Project is created for personal use and is not intended for
+   public distribution, commercial use, or open-source contribution.
+
+2. NO REDISTRIBUTION
+   You may not copy, distribute, sublicense, sell, or transfer this
+   Project or any portion of it to any third party without explicit
+   written permission from the copyright holder.
+
+3. NO DERIVATIVE WORKS
+   You may not modify, adapt, or create derivative works based on this
+   Project without explicit written permission from the copyright holder.
+
+4. INVITED USERS
+   Users who receive a personal invitation link to access the deployed
+   website are granted a limited, non-transferable right to use the
+   website solely for personal interaction with the copyright holder.
+   This does not grant any rights to the underlying source code.
+
+5. THIRD-PARTY SERVICES
+   This Project integrates third-party services (Supabase, Google AI Studio,
+   Vercel, Upstash, Sentry). Their respective terms of service apply
+   independently of this license.
+
+6. NO WARRANTY
+   This Project is provided "as is" without warranty of any kind,
+   express or implied.
+
+All rights reserved. [YOUR FULL NAME], [YEAR].
