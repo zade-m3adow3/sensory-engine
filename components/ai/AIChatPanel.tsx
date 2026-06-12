@@ -1,65 +1,105 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from "react";
+import RippleWrapper from "../ui/RippleWrapper";
+import AIMessageBubble from "./AIMessageBubble";
 
-interface AIChatPanelProps {
-  relationshipType: string;
-  nickname: string;
+interface Message {
+  role: "user" | "ai";
+  content: string;
 }
 
-export function AIChatPanel({ relationshipType, nickname }: AIChatPanelProps) {
-  const [input, setInput] = useState('');
-  
-  // Dynamic Initial Greeting
-  const getGreeting = (type: string, name: string) => {
-    if (type === 'parent') return `Hello ${name}, how are you doing today?`;
-    if (type === 'friend') return `Hey ${name}! What's up?`;
-    if (type === 'romantic_partner') return `Hey love. Thinking of you, ${name}.`;
-    return `Hi ${name}, how can I help you today?`;
-  };
-
-  const [messages, setMessages] = useState([
-    { id: '1', role: 'assistant', content: getGreeting(relationshipType, nickname) }
+export default function AIChatPanel({ userId }: { userId: string }) {
+  const [messages, setMessages] = useState<Message[]>([
+    { role: "ai", content: "Hey there! I'm here. What's on your mind?" }
   ]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
 
-  const handleSend = () => {
-    if (!input.trim()) return;
-    setMessages([...messages, { id: Date.now().toString(), role: 'user', content: input }]);
-    setInput('');
-    // TODO: Wire up actual useChat stream from ai/react
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isTyping) return;
+
+    const newHistory = [...messages, { role: "user" as const, content: input.trim() }];
+    setMessages(newHistory);
+    setInput("");
+    setIsTyping(true);
+
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input, history: messages })
+      });
+
+      if (!res.ok) throw new Error("API Error");
+
+      // Handle streaming text
+      const reader = res.body?.getReader();
+      const decoder = new TextDecoder();
+      let aiResponse = "";
+
+      setMessages([...newHistory, { role: "ai", content: "" }]);
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          aiResponse += chunk;
+          
+          setMessages(prev => {
+            const last = prev[prev.length - 1];
+            return [...prev.slice(0, -1), { ...last, content: aiResponse }];
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setMessages(prev => [...prev, { role: "ai", content: "I need a little break — come back in a bit!" }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white/[0.02] rounded-xl overflow-hidden backdrop-blur-md border border-white/5 pointer-events-auto">
+    <div className="flex flex-col h-full bg-black/20 rounded-xl border border-white/5 overflow-hidden">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((m) => (
-          <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] px-4 py-3 rounded-2xl ${
-              m.role === 'user' 
-                ? 'bg-blue-600/30 border border-blue-400/20 text-white rounded-tr-sm backdrop-blur-md shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
-                : 'bg-black/40 border border-white/10 text-white/90 shadow-[0_0_15px_rgba(255,255,255,0.05)] rounded-tl-sm backdrop-blur-xl'
-            }`}>
-              <p className="text-sm font-inter leading-relaxed">{m.content}</p>
-            </div>
-          </div>
+        {messages.map((msg, i) => (
+          <AIMessageBubble key={i} role={msg.role} content={msg.content} />
         ))}
-        {/* Placeholder typing indicator could go here */}
+        {isTyping && (
+          <div className="flex items-center gap-1 text-white/40 p-3 bg-white/5 rounded-2xl w-fit">
+            <span className="animate-bounce">●</span>
+            <span className="animate-bounce" style={{ animationDelay: "0.1s" }}>●</span>
+            <span className="animate-bounce" style={{ animationDelay: "0.2s" }}>●</span>
+          </div>
+        )}
+        <div ref={endRef} />
       </div>
-      <div className="p-4 border-t border-white/5 bg-black/20">
-        <div className="flex gap-2">
-          <input 
-            className="flex-1 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50 transition-colors"
+
+      <div className="p-3 border-t border-white/10 bg-white/5">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Type a message..."
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            placeholder="Say something..."
+            className="flex-1 bg-transparent text-white placeholder-white/30 px-3 py-2 focus:outline-none font-inter text-sm"
           />
-          <button 
+          <RippleWrapper
+            as="button"
             onClick={handleSend}
-            className="bg-indigo-600/80 hover:bg-indigo-500/80 text-white rounded-full px-5 py-2 text-sm transition-colors shadow-[0_0_10px_rgba(79,70,229,0.5)] border border-indigo-400/30"
+            disabled={!input.trim() || isTyping}
+            className="w-8 h-8 rounded-full bg-indigo-500/80 hover:bg-indigo-400 flex items-center justify-center text-white disabled:opacity-50 transition-colors"
           >
-            Send
-          </button>
+            ↑
+          </RippleWrapper>
         </div>
       </div>
     </div>

@@ -1,31 +1,31 @@
-'use client';
+"use client";
 
-import { MouseEvent, useState, useEffect } from 'react';
+import { useState, MouseEvent } from "react";
 
-export const useRipple = () => {
-  const [ripples, setRipples] = useState<{ x: number; y: number; size: number; id: number }[]>([]);
+interface Ripple {
+  x: number;
+  y: number;
+  size: number;
+  id: number;
+}
 
-  useEffect(() => {
-    if (ripples.length > 0) {
-      const timeout = setTimeout(() => {
-        setRipples([]);
-      }, 600);
-      return () => clearTimeout(timeout);
-    }
-  }, [ripples]);
+export function useRipple() {
+  const [ripples, setRipples] = useState<Ripple[]>([]);
 
-  const addRipple = (event: MouseEvent<HTMLElement>) => {
-    const button = event.currentTarget;
-    const rect = button.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = event.clientX - rect.left - size / 2;
-    const y = event.clientY - rect.top - size / 2;
-
-    setRipples((prev) => [
-      ...prev,
-      { x, y, size, id: Date.now() },
-    ]);
+  const addRipple = (e: MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const size = Math.max(rect.width, rect.height) * 2;
+    
+    const newRipple = { x, y, size, id: Date.now() };
+    setRipples((prev) => [...prev, newRipple]);
+    
+    // Clean up ripple after animation
+    setTimeout(() => {
+      setRipples((prev) => prev.filter((r) => r.id !== newRipple.id));
+    }, 600); // 600ms matches the globals.css animation
   };
 
   return { ripples, addRipple };
-};
+}

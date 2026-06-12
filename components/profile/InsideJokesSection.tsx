@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { GlassButton } from '@/components/ui/GlassButton';
 import { GlassInput } from '@/components/ui/GlassInput';
-import { TextInput } from '@/components/questionnaire/QuestionTypes/TextInput';
+import TextInput from '@/components/questionnaire/QuestionTypes/TextInput';
 
 interface InsideJoke {
   id: string;
@@ -108,6 +108,7 @@ export const InsideJokesSection: React.FC<Props> = ({ profileUserId }) => {
             value={newStory} 
             onChange={(val: string) => setNewStory(val)} 
             isLong
+            colorTheme="Friend"
           />
           <div className="flex justify-end gap-3 mt-4">
             <GlassButton type="button" onClick={() => setIsAdding(false)} className="py-2 px-4 text-sm bg-white/5 hover:bg-white/10">

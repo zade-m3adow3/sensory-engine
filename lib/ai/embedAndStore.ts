@@ -7,7 +7,7 @@ export async function embedAndStore(
   content: string,
   contextType: "questionnaire" | "message" | "joke" | "memory"
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const embedding = await embedText(content);
 
   await supabase.from("ai_context_embeddings").insert({

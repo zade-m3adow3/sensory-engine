@@ -9,7 +9,7 @@ export async function buildContext(
   nickname: string,
   userMessage: string
 ): Promise<string> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 1. Embed the user's message
   const queryEmbedding = await embedText(userMessage);

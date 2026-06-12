@@ -1,56 +1,40 @@
-import React from 'react';
-import { useRipple } from '../../../hooks/useRipple';
+"use client";
 
-interface MultiChoiceProps {
+import RippleWrapper from "@/components/ui/RippleWrapper";
+
+interface Props {
   options: string[];
-  value: string;
-  onChange: (val: string) => void;
-  multiSelect?: boolean;
-  selectedValues?: string[];
-  onMultiChange?: (vals: string[]) => void;
+  selected: string | null;
+  onSelect: (val: string) => void;
+  colorTheme: string; // e.g. "blue", "rose"
 }
 
-export const MultiChoice: React.FC<MultiChoiceProps> = ({ options, value, onChange, multiSelect, selectedValues, onMultiChange }) => {
-  const { ripples, addRipple } = useRipple();
-
-  const handleSelect = (e: React.MouseEvent<HTMLButtonElement>, opt: string) => {
-    addRipple(e);
-    if (multiSelect && selectedValues && onMultiChange) {
-      if (selectedValues.includes(opt)) {
-        onMultiChange(selectedValues.filter(v => v !== opt));
-      } else {
-        onMultiChange([...selectedValues, opt]);
-      }
-    } else {
-      onChange(opt);
-    }
+export default function MultiChoice({ options, selected, onSelect, colorTheme }: Props) {
+  const getThemeClasses = (isSelected: boolean) => {
+    if (!isSelected) return "border-white/10 bg-white/5 hover:bg-white/10 text-white/70";
+    
+    // Simplistic mapping for the requested dynamic colors
+    if (colorTheme === "Parent") return "border-yellow-500/50 bg-yellow-500/20 text-white scale-[1.02]";
+    if (colorTheme === "Partner") return "border-rose-500/50 bg-rose-500/20 text-white scale-[1.02]";
+    if (colorTheme === "Friend") return "border-blue-500/50 bg-blue-500/20 text-white scale-[1.02]";
+    return "border-amber-500/50 bg-amber-500/20 text-white scale-[1.02]"; // Relative/Cousin
   };
 
   return (
-    <div className="flex flex-col gap-4 mt-6">
-      {options.map((opt) => {
-        const isSelected = multiSelect ? selectedValues?.includes(opt) : value === opt;
-        return (
-          <button
-            key={opt}
-            onClick={(e) => handleSelect(e, opt)}
-            className={`ripple-container glass-interactive w-full text-left px-6 py-4 rounded-xl border transition-all ${
-              isSelected 
-                ? 'bg-white/20 border-white/40 shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
-                : 'bg-white/5 border-white/10 hover:bg-white/10'
-            }`}
-          >
-            <span className="text-white text-lg">{opt}</span>
-            {ripples.map((ripple) => (
-              <span
-                key={ripple.id}
-                className="ripple"
-                style={{ top: ripple.y, left: ripple.x, width: ripple.size, height: ripple.size }}
-              />
-            ))}
-          </button>
-        );
-      })}
+    <div className="flex flex-col gap-3 w-full max-w-md mx-auto">
+      {options.map((opt) => (
+        <RippleWrapper
+          key={opt}
+          onClick={() => onSelect(opt)}
+          className={`
+            w-full px-6 py-4 rounded-xl border cursor-pointer 
+            transition-all duration-300 ease-out glass-interactive text-center
+            ${getThemeClasses(selected === opt)}
+          `}
+        >
+          <span className="font-inter font-medium">{opt}</span>
+        </RippleWrapper>
+      ))}
     </div>
   );
-};
+}

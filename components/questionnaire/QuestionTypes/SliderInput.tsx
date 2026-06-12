@@ -1,36 +1,53 @@
-import React from 'react';
+"use client";
 
-interface SliderInputProps {
-  min: number;
-  max: number;
+import { motion } from "framer-motion";
+
+interface Props {
   value: number;
+  min?: number;
+  max?: number;
   onChange: (val: number) => void;
-  labels: string[];
+  colorTheme: string;
 }
 
-export const SliderInput: React.FC<SliderInputProps> = ({ min, max, value, onChange, labels }) => {
+export default function SliderInput({ value, min = 1, max = 10, onChange, colorTheme }: Props) {
+  const getGlowColor = () => {
+    if (colorTheme === "Parent") return "rgba(234, 179, 8, 0.5)";
+    if (colorTheme === "Partner") return "rgba(244, 63, 94, 0.5)";
+    if (colorTheme === "Friend") return "rgba(59, 130, 246, 0.5)";
+    return "rgba(245, 158, 11, 0.5)";
+  };
+
+  const percentage = ((value - min) / (max - min)) * 100;
+
   return (
-    <div className="flex flex-col gap-6 mt-8">
-      <div className="relative pt-6 pb-2">
-        <span 
-          className="absolute -top-4 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-white text-sm font-bold border border-white/20 transition-all duration-200"
-          style={{ left: `calc(${((value - min) / (max - min)) * 100}% - 16px)` }}
-        >
-          {value}
-        </span>
-        <input 
-          type="range" 
-          min={min} 
-          max={max} 
-          value={value} 
-          onChange={(e) => onChange(parseInt(e.target.value))}
-          className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white"
-        />
-      </div>
-      <div className="flex justify-between text-white/60 text-sm font-medium">
-        <span>{labels[0]}</span>
-        <span>{labels[labels.length - 1]}</span>
+    <div className="w-full max-w-md mx-auto mt-8 relative pb-8">
+      {/* Floating bubble */}
+      <motion.div 
+        className="absolute -top-12 -ml-5 w-10 h-10 rounded-full glass-panel flex items-center justify-center text-white font-bold"
+        animate={{ left: `${percentage}%` }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        style={{ boxShadow: `0 0 15px ${getGlowColor()}` }}
+      >
+        {value}
+      </motion.div>
+
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+        className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer outline-none"
+        style={{
+          background: `linear-gradient(to right, ${getGlowColor().replace('0.5', '1')} ${percentage}%, rgba(255,255,255,0.1) ${percentage}%)`
+        }}
+      />
+      
+      <div className="flex justify-between mt-3 text-white/50 text-sm font-inter">
+        <span>{min}</span>
+        <span>{max}</span>
       </div>
     </div>
   );
-};
+}

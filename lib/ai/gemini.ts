@@ -1,49 +1,40 @@
-// lib/ai/gemini.ts
-const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-export async function embedText(text: string): Promise<number[]> {
-  const res = await fetch(
-    `${GEMINI_BASE}/models/${process.env.GEMINI_EMBEDDING_MODEL}:embedContent?key=${process.env.GOOGLE_AI_STUDIO_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: `models/${process.env.GEMINI_EMBEDDING_MODEL}`,
-        content: { parts: [{ text }] }
-      })
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const embeddingModel = genAI.getGenerativeModel({ model: "text-embedding-004" });
+
+export async function chatWithGemini(systemPrompt: string, history: any[], message: string) {
+  // Convert history into Gemini format
+  const formattedHistory = history.map((msg) => ({
+    role: msg.role === "ai" ? "model" : "user",
+    parts: [{ text: msg.content }],
+  }));
+
+  const chat = model.startChat({
+    history: [
+      { role: "user", parts: [{ text: "SYSTEM INSTRUCTION: " + systemPrompt }] },
+      { role: "model", parts: [{ text: "Understood. I will follow these instructions." }]},
+      ...formattedHistory
+    ],
+  });
+
+  const result = await chat.sendMessageStream(message);
+
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    async start(controller) {
+      for await (const chunk of result.stream) {
+        controller.enqueue(encoder.encode(chunk.text()));
+      }
+      controller.close();
     }
-  );
-  const data = await res.json();
-  return data.embedding.values; // 768-dimension vector
+  });
+
+  return readable;
 }
 
-export async function chatWithGemini(
-  systemPrompt: string,
-  history: { role: "user" | "model"; parts: { text: string }[] }[],
-  userMessage: string
-): Promise<ReadableStream> {
-  const res = await fetch(
-    `${GEMINI_BASE}/models/${process.env.GEMINI_MODEL}:streamGenerateContent?key=${process.env.GOOGLE_AI_STUDIO_API_KEY}&alt=sse`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [
-          ...history,
-          { role: "user", parts: [{ text: userMessage }] }
-        ],
-        generationConfig: {
-          temperature: 0.85,
-          maxOutputTokens: 1024,
-          topP: 0.95
-        },
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
-        ]
-      })
-    }
-  );
-  return res.body!;
+export async function embedText(text: string): Promise<number[]> {
+  const result = await embeddingModel.embedContent(text);
+  return result.embedding.values;
 }

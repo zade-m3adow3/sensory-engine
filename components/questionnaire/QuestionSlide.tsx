@@ -1,88 +1,74 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { MultiChoice } from './QuestionTypes/MultiChoice';
-import { SliderInput } from './QuestionTypes/SliderInput';
-import { TextInput } from './QuestionTypes/TextInput';
+import { motion } from "framer-motion";
+import RippleWrapper from "@/components/ui/RippleWrapper";
+import MultiChoice from "./QuestionTypes/MultiChoice";
+import MultiSelect from "./QuestionTypes/MultiSelect";
+import SliderInput from "./QuestionTypes/SliderInput";
+import TextInput from "./QuestionTypes/TextInput";
+import { QuestionData } from "@/types/questionnaire";
 
-interface QuestionSlideProps {
-  question: any;
-  answer: any;
-  setAnswer: (val: any) => void;
-  direction: number;
+interface Props {
+  question: QuestionData;
+  value: any;
+  onChange: (val: any) => void;
+  onNext: () => void;
+  onBack?: () => void;
+  isLast: boolean;
+  colorTheme: string;
 }
 
-const variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 1000 : -1000,
-    opacity: 0
-  }),
-  center: {
-    zIndex: 1,
-    x: 0,
-    opacity: 1
-  },
-  exit: (direction: number) => ({
-    zIndex: 0,
-    x: direction < 0 ? 1000 : -1000,
-    opacity: 0
-  })
-};
-
-export const QuestionSlide: React.FC<QuestionSlideProps> = ({ question, answer, setAnswer, direction }) => {
+export default function QuestionSlide({ question, value, onChange, onNext, onBack, isLast, colorTheme }: Props) {
   return (
     <motion.div
-      custom={direction}
-      variants={variants}
-      initial="enter"
-      animate="center"
-      exit="exit"
-      transition={{ x: { type: "spring", stiffness: 300, damping: 30 }, opacity: { duration: 0.2 } }}
-      className="absolute w-full max-w-2xl mx-auto inset-0 flex flex-col justify-center"
+      className="glass-panel w-full max-w-2xl mx-auto p-8 md:p-12 flex flex-col items-center justify-center min-h-[60vh] relative"
+      initial={{ x: 100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: -100, opacity: 0 }}
+      transition={{ ease: "easeInOut", duration: 0.35 }}
     >
-      <div className="glass-panel p-10 backdrop-blur-2xl bg-black/20">
-        <h2 className="text-3xl font-heading font-bold text-white mb-2 leading-tight">
-          {question.text}
-        </h2>
-        
-        <div className="mt-8">
-          {question.type === 'multiChoice' && (
-            <MultiChoice 
-              options={question.options} 
-              value={answer || ''} 
-              onChange={setAnswer} 
-            />
-          )}
-          {question.type === 'multiSelect' && (
-            <MultiChoice 
-              options={question.options} 
-              value="" 
-              onChange={() => {}} 
-              multiSelect
-              selectedValues={answer || []}
-              onMultiChange={setAnswer}
-            />
-          )}
-          {question.type === 'slider' && (
-            <SliderInput 
-              min={question.min} 
-              max={question.max} 
-              value={answer || (question.min + Math.floor((question.max - question.min)/2))} 
-              onChange={setAnswer} 
-              labels={question.labels}
-            />
-          )}
-          {question.type === 'text' && (
-            <TextInput 
-              value={answer || ''} 
-              onChange={setAnswer} 
-              placeholder={question.placeholder}
-              isLong={question.isLong}
-            />
-          )}
-        </div>
+      <h2 className="text-2xl md:text-3xl font-space-grotesk text-center mb-10 text-white leading-relaxed">
+        {question.prompt}
+      </h2>
+
+      <div className="w-full flex-grow flex items-center justify-center">
+        {question.type === "MultiChoice" && (
+          <MultiChoice options={question.options!} selected={value} onSelect={onChange} colorTheme={colorTheme} />
+        )}
+        {question.type === "MultiSelect" && (
+          <MultiSelect options={question.options!} selected={value || []} onSelect={onChange} colorTheme={colorTheme} />
+        )}
+        {question.type === "Slider" && (
+          <SliderInput value={value || 5} min={1} max={10} onChange={onChange} colorTheme={colorTheme} />
+        )}
+        {question.type === "TextInput" && (
+          <TextInput value={value || ""} onChange={onChange} isLong={question.isLong} colorTheme={colorTheme} />
+        )}
+      </div>
+
+      <div className="w-full flex justify-between mt-12">
+        {onBack ? (
+          <RippleWrapper
+            as="button"
+            onClick={onBack}
+            className="px-6 py-3 rounded-full border border-white/20 text-white/70 hover:bg-white/10 transition-colors"
+          >
+            Back
+          </RippleWrapper>
+        ) : <div />}
+
+        <RippleWrapper
+          as="button"
+          onClick={onNext}
+          disabled={value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)}
+          className={`
+            px-8 py-3 rounded-full text-white font-medium transition-all
+            ${value ? 'bg-indigo-600 shadow-[0_0_15px_rgba(79,70,229,0.5)] hover:bg-indigo-500' : 'bg-white/10 text-white/50 cursor-not-allowed'}
+          `}
+        >
+          {isLast ? "Finish" : "Next"}
+        </RippleWrapper>
       </div>
     </motion.div>
   );
-};
+}
