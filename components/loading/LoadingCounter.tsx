@@ -5,7 +5,7 @@ import { motion, animate, AnimatePresence } from "framer-motion";
 
 export default function LoadingCounter({ nickname }: { nickname?: string }) {
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Initialising your world...");
+  const [statusText, setStatusText] = useState("INITIALISING...");
 
   useEffect(() => {
     const controls = animate(0, 100, {
@@ -17,208 +17,162 @@ export default function LoadingCounter({ nickname }: { nickname?: string }) {
   }, []);
 
   useEffect(() => {
-    if (progress <= 20)       setStatusText("Initialising your world...");
-    else if (progress <= 50)  setStatusText("Loading your connections...");
-    else if (progress <= 80)  setStatusText(nickname ? `Waking up for ${nickname}...` : "Building your experience...");
-    else if (progress < 100)  setStatusText("Almost there...");
-    else                      setStatusText(nickname ? `Welcome back, ${nickname}. ✨` : "Welcome. ✨");
+    if (progress <= 20)       setStatusText("INITIALISING...");
+    else if (progress <= 50)  setStatusText("LOADING MODULES...");
+    else if (progress <= 80)  setStatusText(nickname ? `WAKING UP ${nickname.toUpperCase()}...` : "BUILDING UNIVERSE...");
+    else if (progress < 100)  setStatusText("ALMOST THERE...");
+    else                      setStatusText(nickname ? `WELCOME BACK, ${nickname.toUpperCase()}` : "WELCOME TO ROUNAK'S WORLD");
   }, [progress, nickname]);
 
   // SVG circular progress
-  const radius = 110;
+  const radius = 160;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  // 12 tendril angles
-  const tendrils = Array.from({ length: 12 }, (_, i) => (i * 360) / 12);
-
   return (
-    <div className="flex flex-col items-center justify-center w-full h-screen fixed inset-0 z-[100] bg-black">
-      {/* Deep navy radial backdrop */}
+    <div className="flex flex-col items-center justify-center w-full h-screen fixed inset-0 z-[100] bg-[#020612]">
+      {/* Deep dark backdrop with subtle glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 50% 50%, rgba(3,15,40,0.96) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(6,182,212,0.08) 0%, transparent 100%)",
         }}
       />
 
-      {/* Gauge assembly */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.82 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.65, ease: "easeOut" }}
-        className="relative flex items-center justify-center"
-        style={{ width: 340, height: 340 }}
-      >
+      <div className="relative flex flex-col items-start justify-center" style={{ width: 440, height: 440 }}>
+        {/* The SVG HUD */}
         <svg
-          width="340"
-          height="340"
-          viewBox="0 0 340 340"
-          style={{ overflow: "visible", position: "absolute", inset: 0 }}
+          width="440"
+          height="440"
+          viewBox="0 0 440 440"
+          className="absolute inset-0 overflow-visible"
         >
-          {/* Tendrils / rays */}
-          {tendrils.map((angle, i) => {
-            const rad = (angle * Math.PI) / 180;
-            const innerR = 138;
-            const isMajor = i % 3 === 0;
-            const outerR = innerR + (isMajor ? 34 : i % 3 === 1 ? 20 : 12);
-            const x1 = 170 + innerR * Math.cos(rad);
-            const y1 = 170 + innerR * Math.sin(rad);
-            const x2 = 170 + outerR * Math.cos(rad);
-            const y2 = 170 + outerR * Math.sin(rad);
-            return (
-              <line
-                key={i}
-                x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke="#22d3ee"
-                strokeWidth={isMajor ? 2.5 : 1.2}
-                strokeLinecap="round"
-                opacity={(progress / 100) * (isMajor ? 0.85 : 0.45)}
-                style={{ filter: isMajor ? "drop-shadow(0 0 5px #22d3ee)" : undefined }}
-              />
-            );
-          })}
-
-          {/* Track ring */}
-          <circle cx="170" cy="170" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="18" />
-
-          {/* Progress arc */}
+          {/* Faint background track circle */}
+          <circle 
+            cx="220" cy="220" r={radius} 
+            fill="none" stroke="rgba(34,211,238,0.05)" strokeWidth="32" 
+          />
+          
+          {/* Thick cyan progress arc */}
           <motion.circle
-            cx="170" cy="170" r={radius}
+            cx="220" cy="220" r={radius}
             fill="none"
-            stroke="url(#gaugeGrad)"
-            strokeWidth="18"
-            strokeLinecap="round"
+            stroke="url(#glowGrad)"
+            strokeWidth="32"
+            strokeLinecap="butt"
             strokeDasharray={circumference}
             animate={{ strokeDashoffset }}
             transition={{ duration: 0.06 }}
-            transform="rotate(-90 170 170)"
-            style={{ filter: "drop-shadow(0 0 10px rgba(34,211,238,0.9))" }}
+            transform="rotate(-90 220 220)"
+            style={{ filter: "drop-shadow(0 0 25px rgba(34,211,238,0.7))" }}
           />
 
-          {/* Inner decorative rings */}
-          <circle cx="170" cy="170" r="90"  fill="none" stroke="rgba(34,211,238,0.06)" strokeWidth="1" />
-          <circle cx="170" cy="170" r="130" fill="none" stroke="rgba(34,211,238,0.04)" strokeWidth="1" />
-
-          {/* 60 tick marks */}
-          {Array.from({ length: 60 }, (_, i) => {
-            const a = (i * 6 * Math.PI) / 180 - Math.PI / 2;
-            const isMajorTick = i % 5 === 0;
-            const r1 = 128, r2 = isMajorTick ? 121 : 125;
+          {/* HUD tick marks on the outside */}
+          {Array.from({ length: 36 }, (_, i) => {
+            const a = (i * 10 * Math.PI) / 180 - Math.PI / 2;
+            const isMajorTick = i % 3 === 0;
+            const r1 = 188;
+            const r2 = isMajorTick ? 204 : 194;
             return (
               <line
                 key={i}
-                x1={170 + r1 * Math.cos(a)} y1={170 + r1 * Math.sin(a)}
-                x2={170 + r2 * Math.cos(a)} y2={170 + r2 * Math.sin(a)}
-                stroke={`rgba(34,211,238,${isMajorTick ? 0.38 : 0.13})`}
+                x1={220 + r1 * Math.cos(a)} y1={220 + r1 * Math.sin(a)}
+                x2={220 + r2 * Math.cos(a)} y2={220 + r2 * Math.sin(a)}
+                stroke={`rgba(34,211,238,${isMajorTick ? 0.6 : 0.2})`}
                 strokeWidth={isMajorTick ? 2 : 1}
+                style={{ filter: isMajorTick ? "drop-shadow(0 0 5px rgba(34,211,238,0.8))" : "none" }}
               />
             );
           })}
 
+          {/* Thin inner ring */}
+          <circle cx="220" cy="220" r="132" fill="none" stroke="rgba(34,211,238,0.15)" strokeWidth="1" strokeDasharray="4 8" />
+
           <defs>
-            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%"   stopColor="#6366f1" />
+            <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stopColor="#0ea5e9" />
               <stop offset="50%"  stopColor="#22d3ee" />
               <stop offset="100%" stopColor="#06b6d4" />
             </linearGradient>
           </defs>
         </svg>
 
-        {/* Central frosted glass disc */}
-        <div
-          className="absolute flex flex-col items-center justify-center rounded-full"
-          style={{
-            width: 176, height: 176,
-            background: "rgba(4,12,35,0.88)",
-            backdropFilter: "blur(22px)",
-            border: "1px solid rgba(34,211,238,0.18)",
-            boxShadow: "0 0 50px rgba(34,211,238,0.12), inset 0 0 28px rgba(34,211,238,0.06)",
-          }}
-        >
-          {/* Hatched pattern */}
-          <svg className="absolute inset-0 opacity-[0.08] rounded-full" width="176" height="176">
-            {Array.from({ length: 22 }, (_, i) => (
-              <line
-                key={i}
-                x1={0}   y1={i * 8}
-                x2={176} y2={i * 8 - 176}
-                stroke="#22d3ee" strokeWidth="1"
-              />
-            ))}
-          </svg>
+        {/* Counter & Text Overlays */}
+        <div className="relative z-10 pl-[40px] pt-[60px] pointer-events-none flex items-center">
+          {/* Hatched Square from reference (decorative) */}
+          <div 
+            className="absolute -top-12 -left-12 w-48 h-48 opacity-60 mix-blend-screen overflow-hidden"
+            style={{ background: "rgba(15,23,42,0.5)", border: "1px solid rgba(34,211,238,0.2)" }}
+          >
+            <svg width="100%" height="100%">
+              {Array.from({ length: 30 }, (_, i) => (
+                <line key={i} x1={0} y1={i * 8} x2={192} y2={i * 8 - 192} stroke="#22d3ee" strokeWidth="1" opacity="0.4" />
+              ))}
+            </svg>
+          </div>
 
-          {/* Counter */}
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={progress}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.07 }}
-              className="relative z-10 font-bold text-white"
+          {/* The Number */}
+          <div className="relative flex items-end">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={progress}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.1 }}
+                className="font-bold text-white leading-none tracking-tighter mix-blend-plus-lighter"
+                style={{
+                  fontFamily: "Space Grotesk, sans-serif",
+                  fontSize: "8.5rem",
+                  textShadow: "0 0 40px rgba(255,255,255,0.4), 0 0 20px rgba(34,211,238,0.8)",
+                  letterSpacing: "-0.05em",
+                }}
+              >
+                {progress}
+              </motion.span>
+            </AnimatePresence>
+            <span
+              className="text-cyan-400 font-bold ml-2 mb-4 text-3xl"
               style={{
                 fontFamily: "Orbitron, monospace",
-                fontSize: "3.8rem",
-                lineHeight: 1,
-                textShadow: "0 0 30px rgba(34,211,238,1), 0 0 60px rgba(34,211,238,0.45)",
+                textShadow: "0 0 15px rgba(34,211,238,0.8)",
               }}
             >
-              {progress}
-            </motion.span>
+              %
+            </span>
+          </div>
+        </div>
+
+        {/* Status Text positioned below like in screenshot */}
+        <div className="absolute bottom-6 left-[40px]">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={statusText}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                fontFamily: "Orbitron, monospace",
+                fontSize: "0.9rem",
+                letterSpacing: "0.25em",
+                color: "rgba(34,211,238,0.8)",
+                textTransform: "uppercase",
+                textShadow: "0 0 10px rgba(34,211,238,0.5)",
+              }}
+            >
+              {statusText}
+            </motion.p>
           </AnimatePresence>
-          <span
-            className="relative z-10 mt-1"
-            style={{
-              fontFamily: "Orbitron, monospace",
-              fontSize: "0.75rem",
-              color: "rgba(34,211,238,0.55)",
-              letterSpacing: "0.2em",
-            }}
-          >
-            %
-          </span>
-        </div>
-      </motion.div>
-
-      {/* Progress bar + status */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="mt-8 flex flex-col items-center gap-3"
-      >
-        <div className="w-[300px] h-[2px] rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
-          <motion.div
-            className="h-full rounded-full"
-            style={{
-              width: `${progress}%`,
-              background: "linear-gradient(90deg, #6366f1, #22d3ee)",
-              boxShadow: "0 0 14px rgba(34,211,238,0.85)",
-            }}
-          />
+          {/* Subtle dots beneath text */}
+          <div className="flex gap-2 mt-3 ml-1">
+             <div className="w-1 h-1 rounded-full bg-cyan-400 opacity-80" style={{boxShadow: "0 0 5px #22d3ee"}}/>
+             <div className="w-1 h-1 rounded-full bg-cyan-400 opacity-40"/>
+             <div className="w-1 h-1 rounded-full bg-cyan-400 opacity-20"/>
+          </div>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.p
-            key={statusText}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
-            transition={{ duration: 0.28 }}
-            style={{
-              fontFamily: "Orbitron, monospace",
-              fontSize: "0.68rem",
-              letterSpacing: "0.22em",
-              color: "rgba(34,211,238,0.65)",
-              textTransform: "uppercase",
-            }}
-          >
-            {statusText}
-          </motion.p>
-        </AnimatePresence>
-      </motion.div>
+      </div>
     </div>
   );
 }

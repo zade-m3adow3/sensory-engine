@@ -59,7 +59,7 @@ export default function SignupForm({ onSuccess }: Props) {
     e.preventDefault();
     setError(null);
 
-    if (!relationship)              return setError("Please select your relationship.");
+    if (!relationship && !isSuperadmin) return setError("Please select your relationship.");
     if (!isValidGmail(email))       return setError("Please use a valid Gmail address.");
     if (password.length < 8)        return setError("Password must be at least 8 characters.");
     if (!/\d/.test(password))       return setError("Password must contain at least one number.");
@@ -68,12 +68,15 @@ export default function SignupForm({ onSuccess }: Props) {
 
     setIsSubmitting(true);
     const supabase = createClient();
+    
+    // Default relationship for superadmin if they skip the selector
+    const finalRelationship = isSuperadmin && !relationship ? "friend" : relationship;
 
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { nickname, relationship_type: relationship, is_superadmin: isSuperadmin },
+        data: { nickname, relationship_type: finalRelationship, is_superadmin: isSuperadmin },
       },
     });
 
@@ -87,13 +90,19 @@ export default function SignupForm({ onSuccess }: Props) {
       setProfile({
         id: data.user.id,
         nickname,
-        relationship_type: relationship,
+        relationship_type: finalRelationship as RelationshipType,
         is_superadmin: isSuperadmin,
-        onboarding_complete: false,
+        onboarding_complete: isSuperadmin, // bypass if superadmin
         priority_score: 0,
       });
+      
+      // If superadmin, mark onboarding complete immediately
+      if (isSuperadmin) {
+        await supabase.from("profiles").update({ onboarding_complete: true }).eq("id", data.user.id);
+      }
+
       onSuccess?.();
-      setTimeout(() => router.push("/questionnaire"), 1800);
+      setTimeout(() => router.push(isSuperadmin ? "/tree" : "/questionnaire"), 1800);
     }
   };
 

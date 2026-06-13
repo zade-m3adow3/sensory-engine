@@ -126,8 +126,6 @@ function Scene3D() {
 /* ──────────── Page ──────────── */
 
 export default function SignupPage() {
-  const formRef = useRef<HTMLDivElement>(null);
-
   const handleSignupSuccess = () => {
     const end = Date.now() + 3000;
     const colors = ["#6366f1", "#22d3ee", "#a78bfa", "#f43f5e", "#ffffff", "#eab308"];
@@ -138,107 +136,64 @@ export default function SignupPage() {
     })();
   };
 
-  const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: "smooth" });
-
   return (
-    <main className="bg-black text-white">
-      {/* ── SECTION 1: 3D Hero ── */}
-      <section className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden">
-        <Canvas
-          camera={{ position: [0, 0, 6], fov: 60 }}
-          className="absolute inset-0 w-full h-full"
-          style={{ background: "transparent" }}
-        >
+    <main className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-black text-white">
+      {/* 3D Background */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <Canvas camera={{ position: [0, 0, 6], fov: 60 }} style={{ background: "transparent" }}>
           <Suspense fallback={null}>
             <Scene3D />
           </Suspense>
         </Canvas>
+      </div>
 
-        {/* Hero text */}
-        <div className="relative z-10 flex flex-col items-center gap-6 px-4 text-center pointer-events-none">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9, duration: 0.9 }}
-          >
+      {/* Main Centered Container */}
+      <div className="relative z-10 w-full max-w-[440px] px-4 py-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="glass-panel p-8 w-full flex flex-col items-center"
+          style={{
+            background: "rgba(5, 10, 25, 0.65)",
+            backdropFilter: "blur(25px)",
+            boxShadow: "0 0 60px rgba(99, 102, 241, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.1)",
+            borderRadius: "24px"
+          }}
+        >
+          {/* Header Introduction */}
+          <div className="text-center mb-8">
             <p
-              className="text-xs mb-3 tracking-[0.4em] uppercase"
-              style={{ fontFamily: "Orbitron, monospace", color: "rgba(34,211,238,0.55)" }}
+              className="text-xs mb-2 tracking-[0.3em] uppercase"
+              style={{ fontFamily: "Orbitron, monospace", color: "rgba(34,211,238,0.7)" }}
             >
               Welcome to
             </p>
             <h1
-              className="text-5xl md:text-7xl font-bold tracking-tight"
+              className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
               style={{
                 fontFamily: "Space Grotesk, sans-serif",
                 background: "linear-gradient(135deg, #ffffff 25%, #22d3ee 75%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                filter: "drop-shadow(0 0 35px rgba(34,211,238,0.4))",
+                filter: "drop-shadow(0 0 20px rgba(34,211,238,0.3))",
               }}
             >
               Rounak's World
             </h1>
-            <p className="text-white/40 mt-4 text-sm md:text-base max-w-sm mx-auto leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
-              A living, breathing digital universe built around one person — and the people who matter most.
+            <p className="text-white/50 text-sm leading-relaxed" style={{ fontFamily: "Inter, sans-serif" }}>
+              A living digital universe built around one person — and the people who matter most.
             </p>
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Scroll down CTA */}
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.6, duration: 0.7 }}
-          onClick={scrollToForm}
-          className="absolute bottom-10 flex flex-col items-center gap-3 pointer-events-auto group"
-          aria-label="Scroll down to sign up"
-        >
-          <p
-            className="text-xs tracking-[0.38em] uppercase transition-colors group-hover:text-cyan-300"
-            style={{ fontFamily: "Orbitron, monospace", color: "rgba(34,211,238,0.5)" }}
-          >
-            Scroll Down
-          </p>
-          <motion.div
-            animate={{ y: [0, 9, 0] }}
-            transition={{ repeat: Infinity, duration: 1.9, ease: "easeInOut" }}
-            className="w-6 h-9 rounded-full border border-cyan-500/35 flex items-start justify-center pt-1.5 group-hover:border-cyan-400/60 transition-colors"
-          >
-            <div className="w-1 h-2.5 rounded-full bg-cyan-400/65" />
-          </motion.div>
-        </motion.button>
-      </section>
+          <div className="w-full h-[1px] bg-white/10 mb-8" />
 
-      {/* ── SECTION 2: Signup Form ── */}
-      <section
-        ref={formRef}
-        className="relative min-h-screen flex items-center justify-center p-6"
-        style={{ background: "radial-gradient(ellipse at 50% 20%, rgba(3,15,40,0.97) 0%, #000 65%)" }}
-      >
-        <div className="relative z-10 w-full max-w-md">
-          <motion.div
-            initial={{ opacity: 0, y: 36 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-          >
-            <p
-              className="text-center mb-8"
-              style={{
-                fontFamily: "Orbitron, monospace",
-                fontSize: "0.62rem",
-                letterSpacing: "0.38em",
-                color: "rgba(255,255,255,0.25)",
-                textTransform: "uppercase",
-              }}
-            >
-              Create your place in the universe
-            </p>
+          {/* Form */}
+          <div className="w-full">
             <SignupForm onSuccess={handleSignupSuccess} />
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </motion.div>
+      </div>
     </main>
   );
 }
