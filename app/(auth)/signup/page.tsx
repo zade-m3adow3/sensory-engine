@@ -153,12 +153,9 @@ export default function SignupPage() {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="glass-panel p-8 w-full flex flex-col items-center"
+          className="p-8 w-full flex flex-col items-center bg-[#09090b] border border-white/10 rounded-2xl relative z-20"
           style={{
-            background: "rgba(5, 10, 25, 0.65)",
-            backdropFilter: "blur(25px)",
-            boxShadow: "0 0 60px rgba(99, 102, 241, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.1)",
-            borderRadius: "24px"
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.5)",
           }}
         >
           {/* Header Introduction */}
