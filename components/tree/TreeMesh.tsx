@@ -64,6 +64,25 @@ function GLBTree({ scene, scrollProgress }: { scene: THREE.Object3D; scrollProgr
   const groupRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
+    // Auto-scale to roughly 8 units high
+    const box = new THREE.Box3().setFromObject(scene);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    
+    if (maxDim > 0) {
+      const targetScale = 8 / maxDim;
+      scene.scale.setScalar(targetScale);
+      
+      // Center the model horizontally
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      scene.position.x = -center.x * targetScale;
+      scene.position.z = -center.z * targetScale;
+      // Position the bottom of the tree at 0
+      scene.position.y = -box.min.y * targetScale;
+    }
+
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
         child.castShadow = true;

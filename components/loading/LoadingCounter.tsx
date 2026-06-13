@@ -99,38 +99,21 @@ export default function LoadingCounter({ nickname }: { nickname?: string }) {
 
         {/* Counter & Text Overlays */}
         <div className="relative z-10 pl-[40px] pt-[60px] pointer-events-none flex items-center">
-          {/* Hatched Square from reference (decorative) */}
-          <div 
-            className="absolute -top-12 -left-12 w-48 h-48 opacity-60 mix-blend-screen overflow-hidden"
-            style={{ background: "rgba(15,23,42,0.5)", border: "1px solid rgba(34,211,238,0.2)" }}
-          >
-            <svg width="100%" height="100%">
-              {Array.from({ length: 30 }, (_, i) => (
-                <line key={i} x1={0} y1={i * 8} x2={192} y2={i * 8 - 192} stroke="#22d3ee" strokeWidth="1" opacity="0.4" />
-              ))}
-            </svg>
-          </div>
+
 
           {/* The Number */}
           <div className="relative flex items-end">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={progress}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.1 }}
-                className="font-bold text-white leading-none tracking-tighter mix-blend-plus-lighter"
-                style={{
-                  fontFamily: "Space Grotesk, sans-serif",
-                  fontSize: "8.5rem",
-                  textShadow: "0 0 40px rgba(255,255,255,0.4), 0 0 20px rgba(34,211,238,0.8)",
-                  letterSpacing: "-0.05em",
-                }}
-              >
-                {progress}
-              </motion.span>
-            </AnimatePresence>
+            <span
+              className="font-bold text-white leading-none tracking-tighter mix-blend-plus-lighter"
+              style={{
+                fontFamily: "Space Grotesk, sans-serif",
+                fontSize: "8.5rem",
+                textShadow: "0 0 40px rgba(255,255,255,0.4), 0 0 20px rgba(34,211,238,0.8)",
+                letterSpacing: "-0.05em",
+              }}
+            >
+              {progress}
+            </span>
             <span
               className="text-cyan-400 font-bold ml-2 mb-4 text-3xl"
               style={{
