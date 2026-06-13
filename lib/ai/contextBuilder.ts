@@ -11,21 +11,31 @@ export async function buildContext(
 ): Promise<string> {
   const supabase = await createClient();
 
-  // 1. Embed the user's message
-  const queryEmbedding = await embedText(userMessage);
+  let contextBlock = "No prior context available yet — respond naturally and warmly.";
 
-  // 2. Retrieve top 5 relevant context chunks for THIS user only
-  const { data: chunks } = await supabase.rpc("match_user_context", {
-    query_embedding: queryEmbedding,
-    match_user_id: userId,
-    match_count: 5
-  });
+  try {
+    // 1. Embed the user's message
+    const queryEmbedding = await embedText(userMessage);
 
-  // 3. Format chunks into readable context
-  const contextBlock = chunks
-    ?.map((c: any) => `[${c.context_type}]: ${c.content}`)
-    .join("\n") ?? "No prior context available.";
+    // 2. Retrieve top 5 semantically relevant chunks for THIS user only
+    const { data: chunks, error } = await supabase.rpc("match_user_context", {
+      query_embedding: queryEmbedding,
+      match_user_id: userId,
+      match_count: 5,
+    });
 
-  // 4. Build final system prompt
+    if (!error && chunks && chunks.length > 0) {
+      contextBlock = chunks
+        .map(
+          (c: { context_type: string; content: string }) =>
+            `[${c.context_type.toUpperCase()}]: ${c.content}`
+        )
+        .join("\n\n");
+    }
+  } catch (err) {
+    // Non-fatal — fall back to empty context so AI still responds
+    console.error("Context retrieval failed, using fallback:", err);
+  }
+
   return getSystemPrompt(relationshipType, nickname, contextBlock);
 }

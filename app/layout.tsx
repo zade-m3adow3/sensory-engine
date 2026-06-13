@@ -1,19 +1,14 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-// import * as Sentry from "@sentry/nextjs";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
-
-// Sentry.init({
-//   dsn: process.env.SENTRY_DSN,
-//   tracesSampleRate: 1.0,
-// });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "My Personal Site",
-  description: "Sensory Engine Personal Site",
+  title: "Sensory Engine | Rounak's World",
+  description: "A living digital universe built around Rounak and the people who matter most.",
+  keywords: ["Rounak", "personal", "relationships", "memories", "sensory engine"],
 };
 
 export default function RootLayout({
@@ -23,10 +18,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${spaceGrotesk.variable} antialiased`}>
-        <div id="stars-container">
-          <div className="star"></div>
-          <div className="star-2"></div>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${inter.className} antialiased bg-black`}>
+        {/* Persistent star field across all pages */}
+        <div id="stars-container" aria-hidden="true">
+          <div className="stars-layer" />
+          <div className="stars-layer stars-layer-2" />
         </div>
         {children}
       </body>

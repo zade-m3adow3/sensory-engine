@@ -6,9 +6,31 @@ import { ratelimit } from "@/lib/upstash/ratelimit";
 import { createClient } from "@/lib/supabase/server";
 import * as Sentry from "@sentry/nextjs";
 
+export const runtime = "nodejs";
+
+const SSE_HEADERS = {
+  "Content-Type": "text/event-stream",
+  "Cache-Control": "no-cache, no-transform",
+  "Connection": "keep-alive",
+  "X-Accel-Buffering": "no",
+  "X-Content-Type-Options": "nosniff",
+};
+
+function sseError(message: string) {
+  return new Response(
+    `data: ${JSON.stringify({ text: message })}\n\ndata: [DONE]\n\n`,
+    { status: 200, headers: SSE_HEADERS }
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { message, history } = await req.json();
+    const body = await req.json();
+    const { message, history } = body;
+
+    if (!message || typeof message !== "string") {
+      return new Response("Bad Request", { status: 400 });
+    }
 
     // Auth check
     const supabase = await createClient();
@@ -17,7 +39,9 @@ export async function POST(req: NextRequest) {
 
     // Rate limit: 20 requests per user per hour
     const { success } = await ratelimit.limit(user.id);
-    if (!success) return new Response("Too many requests", { status: 429 });
+    if (!success) {
+      return sseError("I need a little break — come back in a bit! 😊");
+    }
 
     // Fetch user profile
     const { data: profile } = await supabase
@@ -39,16 +63,10 @@ export async function POST(req: NextRequest) {
     // Stream Gemini response
     const stream = await chatWithGemini(systemPrompt, history ?? [], message);
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive"
-      }
-    });
-
+    return new Response(stream, { headers: SSE_HEADERS });
   } catch (err) {
     Sentry.captureException(err);
-    return new Response("Internal Server Error", { status: 500 });
+    console.error("AI chat error:", err);
+    return sseError("Something went wrong — try again in a moment.");
   }
 }

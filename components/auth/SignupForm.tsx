@@ -6,41 +6,46 @@ import { createClient } from "@/lib/supabase/client";
 import { useUserStore, RelationshipType } from "@/stores/userStore";
 import RelationshipSelector from "./RelationshipSelector";
 import RippleWrapper from "../ui/RippleWrapper";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-export default function SignupForm() {
+interface Props {
+  onSuccess?: () => void;
+}
+
+export default function SignupForm({ onSuccess }: Props) {
   const router = useRouter();
   const setProfile = useUserStore((state) => state.setProfile);
-  
+
   const [relationship, setRelationship] = useState<RelationshipType | null>(null);
-  const [nickname, setNickname] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [nickname, setNickname]         = useState("");
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSuperadmin, setIsSuperadmin] = useState(false);
+  const [showPassword, setShowPassword]       = useState(false);
+  const [isSuperadmin, setIsSuperadmin]       = useState(false);
   const [showAdminToggle, setShowAdminToggle] = useState(false);
-  
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError]               = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const getPasswordStrength = () => {
     if (!password) return 0;
     let score = 0;
-    if (password.length >= 8) score += 1;
-    if (/\d/.test(password)) score += 1;
-    if (/[a-zA-Z]/.test(password)) score += 1;
-    if (/[^a-zA-Z0-9]/.test(password)) score += 1;
+    if (password.length >= 8)          score++;
+    if (/\d/.test(password))           score++;
+    if (/[a-zA-Z]/.test(password))     score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
     return score;
   };
   const strength = getPasswordStrength();
+  const strengthLabel = ["Weak", "Fair", "Good", "Strong"];
+  const strengthColor  = ["bg-red-500", "bg-orange-400", "bg-amber-400", "bg-emerald-400"];
 
-  // Ctrl+Shift+A secret admin toggle
+  // FIXED: e.code === "KeyA" — works regardless of caps lock or browser intercepts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "a") {
+      if (e.ctrlKey && e.shiftKey && e.code === "KeyA") {
+        e.preventDefault();
         setShowAdminToggle((prev) => !prev);
       }
     };
@@ -48,33 +53,28 @@ export default function SignupForm() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const isValidGmail = (email: string) => {
-    return email.endsWith("@gmail.com") && email.length > 10;
-  };
+  const isValidGmail = (v: string) => v.endsWith("@gmail.com") && v.length > 10;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
-    if (!relationship) return setError("Please select your relationship.");
-    if (!isValidGmail(email)) return setError("Please use a valid Gmail address.");
-    if (password.length < 8) return setError("Password must be at least 8 characters.");
+
+    if (!relationship)              return setError("Please select your relationship.");
+    if (!isValidGmail(email))       return setError("Please use a valid Gmail address.");
+    if (password.length < 8)        return setError("Password must be at least 8 characters.");
+    if (!/\d/.test(password))       return setError("Password must contain at least one number.");
     if (password !== confirmPassword) return setError("Passwords do not match.");
-    if (!nickname.trim()) return setError("Please enter a nickname.");
+    if (!nickname.trim())           return setError("Please enter a nickname.");
 
     setIsSubmitting(true);
     const supabase = createClient();
-    
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: {
-          nickname,
-          relationship_type: relationship,
-          is_superadmin: isSuperadmin,
-        }
-      }
+        data: { nickname, relationship_type: relationship, is_superadmin: isSuperadmin },
+      },
     });
 
     if (signUpError) {
@@ -83,7 +83,6 @@ export default function SignupForm() {
       return;
     }
 
-    // Success transition handled in parent or here
     if (data.user) {
       setProfile({
         id: data.user.id,
@@ -93,141 +92,185 @@ export default function SignupForm() {
         onboarding_complete: false,
         priority_score: 0,
       });
-      router.push("/questionnaire");
+      onSuccess?.();
+      setTimeout(() => router.push("/questionnaire"), 1800);
     }
   };
 
   return (
-    <motion.div 
-      className="glass-panel w-full max-w-md mx-auto p-8 relative shadow-[0_0_40px_rgba(79,70,229,0.08)]"
-      animate={error ? { x: [-10, 10, -10, 10, 0] } : {}}
-      transition={{ duration: 0.4 }}
+    <motion.div
+      className="glass-panel w-full max-w-md mx-auto p-8 relative"
+      style={{ boxShadow: "0 0 70px rgba(99,102,241,0.1), 0 0 0 1px rgba(99,102,241,0.12)" }}
+      animate={error ? { x: [-8, 8, -8, 8, 0] } : {}}
+      transition={{ duration: 0.38 }}
     >
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-indigo-500/20 pointer-events-none" />
-      
-      {error && (
-        <div className="absolute -top-12 left-0 right-0 glass-panel bg-red-500/20 border-red-500/50 text-white text-center py-2 px-4 rounded-xl text-sm font-medium">
-          {error}
-        </div>
-      )}
+      {/* Subtle inner glow */}
+      <div
+        className="absolute inset-0 rounded-[20px] pointer-events-none"
+        style={{ boxShadow: "inset 0 0 35px rgba(99,102,241,0.07)" }}
+      />
 
-      <form onSubmit={handleSignup} className="flex flex-col gap-6">
+      {/* Error banner */}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mb-5 px-4 py-3 rounded-xl text-sm text-red-300 font-medium text-center"
+            style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.28)" }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <form onSubmit={handleSignup} className="flex flex-col gap-5">
+        {/* Relationship */}
         <div>
-          <label className="block text-white/70 text-sm font-medium mb-3">Who are you to me?</label>
+          <label
+            className="block mb-3 text-white/50"
+            style={{ fontFamily: "Orbitron, monospace", fontSize: "0.6rem", letterSpacing: "0.3em", textTransform: "uppercase" }}
+          >
+            Who are you to Rounak?
+          </label>
           <RelationshipSelector selected={relationship} onSelect={setRelationship} />
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="relative group">
-            <input
-              type="text"
-              required
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500/50 peer transition-all"
-              placeholder="What should I call you?"
-            />
-            <label className="absolute left-4 top-3 text-white/50 text-sm transition-all peer-focus:-top-6 peer-focus:text-xs peer-focus:text-indigo-400 peer-valid:-top-6 peer-valid:text-xs peer-valid:text-white/70 pointer-events-none">
-              What should I call you?
-            </label>
-          </div>
+        <div className="flex flex-col gap-3 mt-1">
+          {/* Nickname */}
+          <input
+            id="signup-nickname"
+            type="text"
+            required
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="What should Rounak call you?"
+            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-indigo-500/55 focus:bg-white/[0.06] transition-all"
+          />
 
-          <div className="relative group mt-2">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => {
-                if (email && !isValidGmail(email)) setError("Must be a @gmail.com address.");
-              }}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500/50 peer transition-all"
-              placeholder="Your Gmail address"
-            />
-            <label className="absolute left-4 top-3 text-white/50 text-sm transition-all peer-focus:-top-6 peer-focus:text-xs peer-focus:text-indigo-400 peer-valid:-top-6 peer-valid:text-xs peer-valid:text-white/70 pointer-events-none">
-              Your Gmail address
-            </label>
-          </div>
+          {/* Gmail */}
+          <input
+            id="signup-email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); if (error?.includes("Gmail")) setError(null); }}
+            onBlur={() => { if (email && !isValidGmail(email)) setError("Must be a @gmail.com address."); }}
+            placeholder="Your Gmail address"
+            className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-indigo-500/55 focus:bg-white/[0.06] transition-all"
+          />
 
-          <div className="relative group mt-2">
+          {/* Password */}
+          <div className="relative">
             <input
+              id="signup-password"
               type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500/50 peer transition-all"
-              placeholder="Password"
+              placeholder="Password (min. 8 chars + number)"
+              className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3.5 pr-16 text-white text-sm placeholder-white/20 focus:outline-none focus:border-indigo-500/55 focus:bg-white/[0.06] transition-all"
             />
-            <label className="absolute left-4 top-3 text-white/50 text-sm transition-all peer-focus:-top-6 peer-focus:text-xs peer-focus:text-indigo-400 peer-valid:-top-6 peer-valid:text-xs peer-valid:text-white/70 pointer-events-none">
-              Password
-            </label>
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-3 text-white/50 hover:text-white/80 text-sm"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/35 hover:text-white/65 transition-colors"
+              style={{ fontFamily: "Orbitron, monospace", fontSize: "0.58rem", letterSpacing: "0.1em" }}
             >
-              {showPassword ? "Hide" : "Show"}
+              {showPassword ? "HIDE" : "SHOW"}
             </button>
             {password.length > 0 && (
-              <div className="absolute -bottom-3 left-2 right-2 flex gap-1">
-                {[1, 2, 3, 4].map((level) => (
-                  <div 
-                    key={level} 
-                    className={`h-[2px] flex-1 rounded-full transition-all duration-300 ${
-                      strength >= level 
-                        ? (strength < 2 ? 'bg-red-500' : strength < 4 ? 'bg-amber-400' : 'bg-emerald-400')
-                        : 'bg-white/10'
-                    }`} 
-                  />
-                ))}
+              <div className="mt-2 flex items-center gap-2 px-1">
+                <div className="flex gap-1 flex-1">
+                  {[1, 2, 3, 4].map((l) => (
+                    <div
+                      key={l}
+                      className={`h-[3px] flex-1 rounded-full transition-all duration-300 ${
+                        strength >= l ? strengthColor[strength - 1] : "bg-white/10"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-white/35">{strengthLabel[strength - 1] ?? ""}</span>
               </div>
             )}
           </div>
 
-          <div className="relative group mt-2">
+          {/* Confirm password */}
+          <div className="relative">
             <input
+              id="signup-confirm"
               type="password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-white placeholder-transparent focus:outline-none focus:ring-2 peer transition-all
-                ${confirmPassword && password !== confirmPassword ? 'border-red-500/50 focus:ring-red-500/50' : 'border-white/10 focus:ring-indigo-500/50'}
-              `}
               placeholder="Confirm password"
+              className={`w-full bg-white/[0.04] border rounded-xl px-4 py-3.5 text-white text-sm placeholder-white/20 focus:outline-none transition-all ${
+                confirmPassword && password !== confirmPassword
+                  ? "border-red-500/45 focus:border-red-500/65"
+                  : "border-white/10 focus:border-indigo-500/55 focus:bg-white/[0.06]"
+              }`}
             />
-            <label className="absolute left-4 top-3 text-white/50 text-sm transition-all peer-focus:-top-6 peer-focus:text-xs peer-focus:text-indigo-400 peer-valid:-top-6 peer-valid:text-xs peer-valid:text-white/70 pointer-events-none">
-              Confirm password
-            </label>
             {confirmPassword && password !== confirmPassword && (
-              <span className="absolute right-4 top-3 text-red-400 text-xs font-medium">Doesn't match yet</span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-red-400 text-xs">
+                Doesn't match
+              </span>
             )}
           </div>
 
-          {showAdminToggle && (
-            <div className="flex items-center gap-3 mt-2 px-2">
-              <input
-                type="checkbox"
-                id="adminToggle"
-                checked={isSuperadmin}
-                onChange={(e) => setIsSuperadmin(e.target.checked)}
-                className="w-4 h-4 rounded bg-white/10 border-white/20 text-indigo-500 focus:ring-indigo-500/50"
-              />
-              <label htmlFor="adminToggle" className="text-white/70 text-sm">Admin access</label>
-            </div>
-          )}
+          {/* Hidden admin toggle */}
+          <AnimatePresence>
+            {showAdminToggle && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)" }}
+              >
+                <input
+                  type="checkbox"
+                  id="adminToggle"
+                  checked={isSuperadmin}
+                  onChange={(e) => setIsSuperadmin(e.target.checked)}
+                  className="w-4 h-4 rounded accent-indigo-500"
+                />
+                <label htmlFor="adminToggle" className="text-indigo-300 text-sm cursor-pointer">
+                  Admin access
+                </label>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
+        {/* Submit */}
         <RippleWrapper
           as="button"
+          id="signup-submit"
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 rounded-xl bg-indigo-600/80 hover:bg-indigo-500 text-white font-medium shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] transition-all mt-4 disabled:opacity-50 animate-[pulse_3s_ease-in-out_infinite]"
+          className="w-full py-4 rounded-xl text-white font-semibold text-sm tracking-wide disabled:opacity-45 mt-1 transition-all"
+          style={{
+            background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+            boxShadow: isSubmitting ? "none" : "0 0 35px rgba(99,102,241,0.5), 0 4px 20px rgba(99,102,241,0.28)",
+          }}
         >
-          {isSubmitting ? "Creating..." : "Create Account"}
+          {isSubmitting ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Creating...
+            </span>
+          ) : (
+            "Create Account"
+          )}
         </RippleWrapper>
 
-        <p className="text-center text-white/50 text-sm mt-4">
-          Already have an account? <Link href="/login" className="text-white/80 hover:text-white underline underline-offset-4">Sign in</Link>
+        <p className="text-center text-white/28 text-sm">
+          Already have an account?{" "}
+          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-4 transition-colors">
+            Sign in
+          </Link>
         </p>
       </form>
     </motion.div>
